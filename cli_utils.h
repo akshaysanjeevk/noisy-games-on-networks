@@ -160,3 +160,4 @@ static inline void get_file_stem(const char *filepath, char *dest, size_t max_le
 }
 
 #endif
+/*=============================================================================*/

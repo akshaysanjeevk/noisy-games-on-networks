@@ -71,3 +71,4 @@ static inline double xoshiro_uniform(void)
 }
 
 #endif /* RNG_XOSHIRO_H */
+/*=============================================================================*/

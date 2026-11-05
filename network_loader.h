@@ -165,3 +165,4 @@ static inline int scan_network(const char *filename, int *N_out, int **deg_out,
 }
 
 #endif // NETWORK_LOADER_H
+/*=============================================================================*/
