@@ -1,3 +1,11 @@
+/**
+ * @file network_game_fermi.c
+ * @brief Simulating games on a network using Fermi-rule updates.
+ * @author My Name
+ * @date 05-11-2026
+ * @license Distributed under the MIT License (see LICENSE for details).
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -11,30 +19,16 @@
 /*=============================================================================*/
 int main (int argc, char *argv[])
 {
-	if ( argc != 7 ){
-		fprintf( stderr,
-			"Usage: %s <network_file> <T> <K> <tmax> <rec_int> <seed>\n"
-			"  network_file : index-based network adjacency list\n"
-			"  T            : temptation to defect\n"
-			"  K            : Fermi-rule noise (typically in [1e-3, 1e0])\n"
-			"  tmax         : total number of iterations (around 1e3-1e4)\n"
-			"  rec_int      : interval between successive recordings (around 1e2)\n"
-			"  seed         : seed for RNG (xoshiro256++)\n",
-			argv[0] );
-		return 1;
-	}
-
 	// process all input arguments and convert to appropriate formats
 	double T=0.0, K=0.0;
 	int tmax=0, rec_int=0;
 	unsigned long long seed=0;
-	if (process_args(argv, &T, &K, &tmax, &rec_int, &seed) != 0) {
+	if (process_args(argc, argv, &T, &K, &tmax, &rec_int, &seed) != 0) {
  	   return 1;
 	}
-	// extract network file name from input
-	const char *network_file = argv[1];
+	const char *network_file = argv[1]; // extract network file name from input
 
-	xoshiro_init(seed);
+	xoshiro_init(seed); // set seed for RNG (xoshiro256++)
 
 	printf( "Simulating network=%s, T=%.15g, K=%.15g, seed=%llu\n",
 	        network_file, T, K, seed );
@@ -47,6 +41,7 @@ int main (int argc, char *argv[])
 	}
 	printf("Loaded network: N = %d, max(deg) = %d\n", N, max_deg);
 
+	// extract filename stem and use it to set the output directory name
 	char stem[96], out_dir[128];
 	get_file_stem(network_file, stem, sizeof(stem));
 	snprintf(out_dir, sizeof(out_dir), "data_%s", stem);
@@ -86,8 +81,9 @@ int main (int argc, char *argv[])
 		return 1;
 	}
 	
+	// initialize actions and payoffs of all agents
 	for (int i = 0; i < N; i++ ){
-		action[i] = (int)floor(0.5 + xoshiro_uniform());
+		action[i] = (xoshiro_uniform() < 0.5) ? 1 : 0;
 		payoff[i] = 0.0;
 		action_new[i] = action[i];
 	}
