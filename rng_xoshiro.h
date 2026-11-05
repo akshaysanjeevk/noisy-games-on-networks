@@ -1,15 +1,22 @@
-#ifndef RNG_XOSHIRO_H
-#define RNG_XOSHIRO_H
-
-/*
+/**
+ * @file rng_xoshiro.h
+ * @brief Wrapper for third party RNG tools
+ * 
  * The following is a wrapper for the (public domain / CC0) xoshiro256++
  * implementations by David Blackman and Sebastiano Vigna (vigna@acm.org):
  *   third_party/xoshiro256plusplus.c (https://prng.di.unimi.it/xoshiro256plusplus.c)
  *   third_party/splitmix64.c         (https://prng.di.unimi.it/splitmix64.c)
  *   third_party/f2x.c                (https://prng.di.unimi.it/f2x.c)
- * Please refer to README.md for more details. Do not compile the files
+ * The wrapper directly calls the first two files which in turn require the
+ * third. Please refer to README.md for more details. Do not compile the files
  * in third_party/ separately.
+ * @author My Name
+ * @date 05-11-2026
+ * @license Distributed under the MIT License (see LICENSE for details).
  */
+
+#ifndef RNG_XOSHIRO_H
+#define RNG_XOSHIRO_H
 
 #include <stdint.h>
 
@@ -18,6 +25,9 @@
 #pragma GCC diagnostic push
 // suppress compiler warning related to signed/unsigned integers
 #pragma GCC diagnostic ignored "-Wsign-compare"
+// suppress warning for K&R-style function declarations
+// (e.g. "uint64_t next()" instead of "uint64_t next(void)")
+#pragma GCC diagnostic ignored "-Wstrict-prototypes"
 #endif
 
 // Note that there are two different functions named next() in

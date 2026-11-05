@@ -53,20 +53,17 @@ static inline int scan_network(const char *filename, int *N_out, int **deg_out,
 	while( (c = fgetc(fp)) != EOF ){
 		// end of row reached -> record degree
 		if ( c == '\n' ){
-			// ensure that nodes exist in the row (tackles scenarios
-			// where the file ends with "\n", for instance)
-			if (row_deg > 0) {
-				// growth check (if array exceeded preset cap)
-				if ( N >= cap ){
-					// double the capacity and reallocate heap memory
-					cap *= 2;
-					int *tmp = (int *)realloc(deg, (size_t)cap * sizeof *deg);
-					// memory allocation failure => exit
-					if (tmp == NULL){ free(deg); fclose(fp); return -1; }
-					deg = tmp;
-				}
-				deg[N++] = row_deg; // store degree for this node
+			// growth check (if array exceeded preset cap)
+			if ( N >= cap ){
+				// double the capacity and reallocate heap memory
+				cap *= 2;
+				int *tmp = (int *)realloc(deg, (size_t)cap * sizeof *deg);
+				// memory allocation failure => exit
+				if (tmp == NULL){ free(deg); fclose(fp); return -1; }
+				deg = tmp;
 			}
+			deg[N++] = row_deg; // store degree for this node
+
 			row_deg = 0; // reset column count
 			prev_ws = 1;
 		} else {
@@ -134,7 +131,8 @@ static inline int scan_network(const char *filename, int *N_out, int **deg_out,
             // verify that fscanf successfully read an integer from the file
             if (fscanf(fp, "%d",
 				&links[(size_t)i * (size_t)maxdeg +(size_t)ngh]) != 1) {
-                fprintf(stderr, "Error in (row %d, col %d) of %s\n",
+				fprintf(stderr,
+					"Error: expected an integer in (row %d, col %d) of %s\n",
 					i, ngh, filename);
                 free(links);
                 free(deg);

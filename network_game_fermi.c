@@ -23,7 +23,7 @@ int main (int argc, char *argv[])
 	double T=0.0, K=0.0;
 	int tmax=0, rec_int=0;
 	unsigned long long seed=0;
-	if (process_args(argc, argv, &T, &K, &tmax, &rec_int, &seed) != 0) {
+	if (process_args(argc, argv, &T, &K, &tmax, &seed, &rec_int) != 0) {
  	   return 1;
 	}
 	const char *network_file = argv[1]; // extract network file name from input
@@ -53,6 +53,7 @@ int main (int argc, char *argv[])
 		free(deg); free(links);
 		return 1;
 	}
+
 	// open file for writing output
 	char fout[256];
 	snprintf( fout, sizeof fout, "%s/nc_T_%.15g_K_%.15g_seed%llu.dat",
@@ -65,44 +66,73 @@ int main (int argc, char *argv[])
 		return 1;
 	}
 
+	// open a file for recording the time-series if a (non-zero) value
+	// of rec_int is provided in the input list 
+	char fts_path[256];
+	FILE *fts = NULL;
+	int use_ts = (rec_int > 0);
+	if (use_ts){
+		snprintf(fts_path, sizeof fts_path,
+				"%s/TS_T_%.15g_K_%.15g_seed%llu.dat", out_dir, T, K, seed);
+		fts = fopen(fts_path, "w");
+		if (fts == NULL){
+			fprintf(stderr, "Error: cannot open %s for writing\n%s\n",
+					fts_path, strerror(errno));
+			free(deg); free(links);
+			fclose(f1);
+			return 1;
+		}
+	}
+
 	// initialize arrays that store information for each agent
-	int *action     = malloc((size_t)N * sizeof *action);
-	int *action_new = malloc((size_t)N * sizeof *action_new);
+	int *act     = malloc((size_t)N * sizeof *act);
+	int *act_nxt = malloc((size_t)N * sizeof *act_nxt);
 	double *payoff  = malloc((size_t)N * sizeof *payoff);
 	// exit if any of the arrays cannot be created
-	if (!action || !action_new || !payoff) {
+	if (!act || !act_nxt || !payoff) {
 		fprintf(stderr, "Error: out of memory\n");
-		free(deg);
-		free(links);
-		free(action);
-		free(action_new);
-		free(payoff);
-		fclose(f1);
+		free(deg); free(links);
+		free(act); free(act_nxt); free(payoff);
+		fclose(f1); if (fts) fclose(fts);
 		return 1;
 	}
 	
 	// initialize actions and payoffs of all agents
 	for (int i = 0; i < N; i++ ){
-		action[i] = (xoshiro_uniform() < 0.5) ? 1 : 0;
+		act[i] = (xoshiro_uniform() < 0.5) ? 1 : 0;
 		payoff[i] = 0.0;
-		action_new[i] = action[i];
+		act_nxt[i] = act[i];
 	}
 
 	/*-------------------------------------------------------------*/
 	/*    Main loop; runs until final value of time is reached     */
 	/*-------------------------------------------------------------*/
-	int tcurr  = 0;
 	int nc = 0; // number of cooperators in the population
+	for (int i = 0; i < N; i++){ nc += act[i]; }
+
+	// (optional) record t=0 with the initial state
+	if (use_ts){
+		if (fprintf(fts, "0 %d\n", nc) < 0){
+			fprintf(stderr, "Error: cannot write to %s\n%s\n",
+					fts_path, strerror(errno));
+			fclose(f1); fclose(fts);
+			free(deg); free(links);
+			free(act); free(act_nxt); free(payoff);
+			return 1;
+		}
+	}
+
+	int tcurr  = 0;
+	int absorbed = 0; // absorbing state reached?
 	while ( tcurr < tmax ){
 
 		// calculate the total payoffs received by each agent
 		for (int i = 0; i < N; i++ ){
-			payoff[i] = 0.0;
 			int tot_coop_ngh = 0;
 			for (int j = 0; j < deg[i]; j++ ){
-				tot_coop_ngh += action[links[(size_t)i * (size_t)max_deg + (size_t)j]];
+				tot_coop_ngh += act[links[(size_t)i * (size_t)max_deg + (size_t)j]];
 			}
-			if ( action[i] == 1 )
+			if ( act[i] == 1 )
 			{payoff[i] = (double)tot_coop_ngh;}
 			else
 			{payoff[i] = T*(double)tot_coop_ngh;}
@@ -112,7 +142,7 @@ int main (int argc, char *argv[])
 		for (int i = 0; i < N; i++ ){
 			// skip isolated nodes
 			if ( deg[i] == 0 ){
-				action_new[i] = action[i];
+				act_nxt[i] = act[i];
 				continue;
 			}
 			int ngh_indx = (int)floor((deg[i])*xoshiro_uniform());
@@ -126,42 +156,87 @@ int main (int argc, char *argv[])
 			}
 
 			if ( xoshiro_uniform() < prob )
-			{action_new[i] = action[rnd_ngh];}
+			{act_nxt[i] = act[rnd_ngh];}
 			else
-			{action_new[i] = action[i];}
-		}
-
-		// calculate fraction of cooperators after interval "rec_int"
-		if ( tcurr % rec_int == 0 ){
-			nc = 0; // number of cooperators in the population
-			for (int i = 0; i < N; i++ ){ nc += action_new[i]; }
-			if ( nc == 0 || nc == N ){ tcurr = tmax; }
+			{act_nxt[i] = act[i];}
 		}
 
 		// update the actions of all agents
-		for (int i = 0; i < N; i++ ){ action[i] = action_new[i]; }
-
+		for (int i = 0; i < N; i++ ){ act[i] = act_nxt[i]; }
 		if (tcurr < tmax) tcurr++;
+		
+		nc = 0; // number of cooperators in the population
+		for (int i = 0; i < N; i++ ){ nc += act[i]; }
+		
+		// record time series spaced by interval "rec_int"
+		if ( use_ts && tcurr % rec_int == 0 ){
+			if ( fprintf(fts, "%d %d\n", tcurr, nc) < 0 ){
+					fprintf(stderr, "Error: cannot write to %s\n%s\n",
+							fts_path, strerror(errno));
+					fclose(f1);
+					fclose(fts);
+					free(deg); free(links);
+					free(act); free(act_nxt); free(payoff);
+					return 1;
+			}
+		}
+
+		// exit if absorbing state is reached
+		if ( nc == 0 || nc == N ){
+			// record absorbing state in time series if required
+			if ( use_ts && tcurr % rec_int != 0 ){
+				if ( fprintf(fts, "%d %d\n", tcurr, nc) < 0 ){
+					fprintf(stderr, "Error: cannot write to %s\n%s\n",
+							fts_path, strerror(errno));
+					fclose(f1); fclose(fts);
+					free(deg); free(links); free(act);
+					free(act_nxt); free(payoff);
+					return 1;
+				}
+			}
+			absorbed = 1;
+			tcurr = tmax;
+		}
+
 	}
 	/*-------------------------------------------------------------*/
 
-	free(deg);
-	free(links);
-	free(action);
-	free(action_new);
-	free(payoff);
+	// if the simulation ended without reaching an absorbing state
+	// and tmax was not a multiple of rec_int, record the final state
+	if ( use_ts && !absorbed && tcurr > 0 && tcurr % rec_int != 0 ){
+		if ( fprintf(fts, "%d %d\n", tcurr, nc) < 0 ){
+			fprintf(stderr, "Error: cannot write to %s\n%s\n",
+					fts_path, strerror(errno));
+			fclose(f1); fclose(fts);
+			free(deg); free(links);
+			free(act); free(act_nxt); free(payoff);
+			return 1;
+		}
+	}
+
+	free(deg); free(links); free(act); free(act_nxt); free(payoff);
 
 	if ( fprintf( f1, "%d\n", nc ) < 0 ){
 		fprintf(stderr, "Error: cannot write to %s\n%s\n",
 			fout, strerror(errno));
-		fclose(f1);
+		fclose(f1); if (fts) fclose(fts);
 		return 1;
 	}
 
 	if ( fclose(f1) != 0 ){
 		fprintf(stderr, "Error: cannot close %s\n%s\n",
 			fout, strerror(errno));
+		if (fts) fclose(fts);
 		return 1;
+	}
+
+	// close time series file if it was created
+	if (fts != NULL){
+		if (fclose(fts) != 0){
+			fprintf(stderr, "Error: cannot close %s\n%s\n",
+					fts_path, strerror(errno));
+			return 1;
+		}
 	}
 
 	puts("Done");

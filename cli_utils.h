@@ -25,31 +25,32 @@
  *   argv[2]: T (temptation to defect) [double]
  *   argv[3]: K (Fermi-rule noise) [double]
  *   argv[4]: tmax (maximum time steps in simulation) [int]
- *   argv[5]: rec_int (interval between recordings) [int]
- *   argv[6]: seed for RNG [unsigned long long]
+ *   argv[5]: seed for RNG [unsigned long long]
+ *   argv[6]: rec_int (interval between recordings) [int] (optional)
  *
  * @param argc        Argument count from main().
  * @param argv        Argument vector from main().
  * @param T_out       Pointer to store parsed T.
  * @param K_out       Pointer to store parsed K.
  * @param tmax_out    Pointer to store parsed tmax.
- * @param rec_int_out Pointer to store parsed rec_int.
  * @param seed_out    Pointer to store parsed seed.
+ * @param rec_int_out Pointer to store parsed rec_int (0=>don't save time series).
  * @return int        Returns 0 on success, or 1 on validation error.
  */
 static inline int process_args(int argc, char *argv[], double *T_out,
-	double *K_out, int *tmax_out, int *rec_int_out, unsigned long long *seed_out)
+	double *K_out, int *tmax_out, unsigned long long *seed_out, int *rec_int_out)
 {
 	// Ensure all required arguments were passed to prevent out-of-bounds access
-	if ( argc != 7 ){
+	if ( argc != 6 && argc != 7 ){
 		fprintf( stderr,
-			"Usage: %s <network_file> <T> <K> <tmax> <rec_int> <seed>\n"
+			"Usage: %s <network_file> <T> <K> <tmax> <seed> [<rec_int>]\n"
 			"  network_file : index-based network adjacency list\n"
 			"  T            : temptation to defect\n"
 			"  K            : Fermi-rule noise\n"
 			"  tmax         : total number of iterations\n"
+			"  seed         : seed for RNG (xoshiro256++)\n"
 			"  rec_int      : interval between successive recordings\n"
-			"  seed         : seed for RNG (xoshiro256++)\n",
+			"                 (optional; omit to skip time-series output)\n",
 			argv[0] );
 		return 1;
 	}
@@ -77,23 +78,31 @@ static inline int process_args(int argc, char *argv[], double *T_out,
         return 1;
     }
 
-    errno = 0;
-    long rec_int_long = strtol(argv[5], &endptr, 10);
-    if (argv[5] == endptr || errno == ERANGE || *endptr != '\0') {
-        fprintf(stderr, "Error: rec_int ('%s') invalid/out-of-range\n", argv[5]);
-        return 1;
-    }
-
 	errno = 0;
-	unsigned long long seed = strtoull(argv[6], &endptr, 10);
-	if (argv[6] == endptr || errno == ERANGE || *endptr != '\0') {
-		fprintf(stderr, "Error: seed ('%s') invalid or out-of-range\n", argv[6]);
+	unsigned long long seed = strtoull(argv[5], &endptr, 10);
+	if (argv[5] == endptr || errno == ERANGE || *endptr != '\0') {
+		fprintf(stderr, "Error: seed ('%s') invalid or out-of-range\n", argv[5]);
 		return 1;
 	}
 	// reject negative input seeds
-	if (argv[6][0] == '-' && argv[6][1] != '\0') {
+	if (argv[5][0] == '-' && argv[5][1] != '\0') {
 		fprintf(stderr, "Error: seed must be non-negative\n");
 		return 1;
+	}
+
+    int rec_int = 0; // 0 means "don't record time series"
+	if (argc == 7){
+		errno = 0;
+		long rec_int_long = strtol(argv[6], &endptr, 10);
+		if (argv[6] == endptr || errno == ERANGE || *endptr != '\0'){
+			fprintf(stderr, "Error: rec_int ('%s') invalid/out-of-range\n", argv[6]);
+			return 1;
+		}
+		if (rec_int_long <= 0 || rec_int_long > INT_MAX){
+			fprintf(stderr, "Error: rec_int out of range (1, %d]\n", INT_MAX);
+			return 1;
+		}
+		rec_int = (int)rec_int_long;
 	}
 
 	// check if integers are less than the max allowed value
@@ -101,13 +110,8 @@ static inline int process_args(int argc, char *argv[], double *T_out,
 		fprintf(stderr, "Error: tmax out of range [0, %d]\n", INT_MAX);
 		return 1;
 	}
-	if (rec_int_long <= 0 || rec_int_long > INT_MAX) {
-		fprintf(stderr, "Error: rec_int out of range (1, %d]\n", INT_MAX);
-		return 1;
-	}
 	// cast long back to int
     int tmax = (int)tmax_long;
-    int rec_int = (int)rec_int_long;
 
 	if (!(K >= 0.0)) {
 		fprintf(stderr, "Error: K must be non-negative and finite\n");
@@ -118,11 +122,11 @@ static inline int process_args(int argc, char *argv[], double *T_out,
 		return 1;
 	}
 
-	*T_out      = T;
-	*K_out      = K;
-	*tmax_out   = tmax;
+	*T_out       = T;
+	*K_out       = K;
+	*tmax_out    = tmax;
+	*seed_out    = seed;
 	*rec_int_out = rec_int;
-	*seed_out = seed;
 	return 0;	
 }
 
@@ -133,7 +137,7 @@ static inline int process_args(int argc, char *argv[], double *T_out,
  * @param filepath Path to the file (e.g., "networks/links.dat").
  * @param dest     Destination buffer for storing the extracted stem.
  * @param max_len  Maximum capacity of the destination buffer.
- * @return int        Returns 0 on success, or 1 on validation error.
+ * @return void
  */
 static inline void get_file_stem(const char *filepath, char *dest, size_t max_len) {
 	// align pointer "base" to the last "/" in the filepath
@@ -152,7 +156,7 @@ static inline void get_file_stem(const char *filepath, char *dest, size_t max_le
 	// strip file extension by replacing "." with a null terminator (\0).
 	if (dot != NULL && dot != dest) { *dot = '\0'; }
 
-	return 0;
+	return;
 }
 
 #endif
