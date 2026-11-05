@@ -1,8 +1,8 @@
 /**
  * @file network_game_fermi.c
  * @brief Simulating games on a network using Fermi-rule updates.
- * @author My Name
- * @date 05-11-2026
+ * @author Shakti N. Menon
+ * @date 06-11-2026
  * @license Distributed under the MIT License (see LICENSE for details).
  */
 

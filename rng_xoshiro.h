@@ -10,8 +10,8 @@
  * The wrapper directly calls the first two files which in turn require the
  * third. Please refer to README.md for more details. Do not compile the files
  * in third_party/ separately.
- * @author My Name
- * @date 05-11-2026
+ * @author Shakti N. Menon
+ * @date 06-11-2026
  * @license Distributed under the MIT License (see LICENSE for details).
  */
 

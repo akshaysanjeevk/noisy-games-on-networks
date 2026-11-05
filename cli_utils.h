@@ -1,8 +1,8 @@
 /**
  * @file cli_utils.h
  * @brief Command-line argument processing utilities.
- * @author My Name
- * @date 05-11-2026
+ * @author Shakti N. Menon
+ * @date 06-11-2026
  * @license Distributed under the MIT License (see LICENSE for details).
  */
 
