@@ -19,9 +19,7 @@
  * 
  * Performs a two-pass scan of the network file to determine the number of nodes, 
  * individual node degrees, maximum degree, and the flattened 2D connectivity array.
- * of size ```N × maxdeg```. Note that this is optimized for moderate-sized networks
- * with small average degrees. For extremely large or dense scale-free networks,
- * memory usage may scale with max degree.
+ * of size ```N × maxdeg```.
  *
  * @param filename   Path to the network data file.
  * @param N_out      Pointer to store the total number of nodes (N).
@@ -137,9 +135,7 @@ static inline int scan_network(const char *filename, int *N_out, int **deg_out,
 				fprintf(stderr,
 					"Error: expected an integer in (row %d, col %d) of %s\n",
 					i, ngh, filename);
-                free(links);
-                free(deg);
-                fclose(fp);
+                free(links); free(deg); fclose(fp);
                 return -1;
             }
 			// validate that the neighbour indices lie within the valid range
@@ -147,9 +143,7 @@ static inline int scan_network(const char *filename, int *N_out, int **deg_out,
 				|| links[(size_t)i * (size_t)maxdeg + (size_t)ngh] >= N) {
 				fprintf(stderr, "Error: idx %d not in [0,%d) in %s (row %d)\n",
 					links[(size_t)i * (size_t)maxdeg + (size_t)ngh], N, filename, i);
-                free(links);
-                free(deg);
-                fclose(fp);
+                free(links); free(deg); fclose(fp);
                 return -1;
 			}
         }
