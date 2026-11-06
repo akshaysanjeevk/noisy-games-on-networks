@@ -42,7 +42,10 @@ where we supply the following input arguments:
 
 (Note that ```T>1``` corresponds to the Prisoner's Dilemma game, while ```T<1``` corresponds to the Stag Hunt game.)
 
-If the input network provided is named ```<network_file>.dat``` the script generates a folder ```data_<network_file>``` that contains a file ```nc_T_<T>_K_<K>_seed<seed>.dat``` with the final number of cooperators (```nc```) in the network. If ```rec_int(>0)``` is specified in the argument list then the new folder will contain an additional file ```TS_T_<T>_K_<K>_seed<seed>.dat``` which contains time-series data for ```nc```.
+<!-- If the input network provided is named ```<network_file>.dat```  -->
+The script generates a file ```data_<network_file>/nc_T_<T>_K_<K>_seed<seed>.dat``` containing the value of the final number of cooperators (```nc```) in the network.
+
+If ```rec_int(>0)``` is specified in the argument list then the script creates an additional file ```data_<network_file>/TS_T_<T>_K_<K>_seed<seed>.dat``` which contains time-series data for ```nc```.
 
 _____________________________________________________________________________________________
 The repository contains the following files:
@@ -51,7 +54,7 @@ The repository contains the following files:
 
 * ```cli_utils.h``` : contains command-line argument processing utilities
 
-* ```network_loader.h``` : contains function ```scan_network()``` that parses, validates, and loads network file
+* ```network_loader.h``` : contains function ```scan_network()``` that parses, validates, and loads network file.
 
 * ```rng_xoshiro.c``` : contains wrapper for third party random number generator (xoshiro256++, see: <https://prng.di.unimi.it>)
 

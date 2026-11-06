@@ -19,6 +19,9 @@
  * 
  * Performs a two-pass scan of the network file to determine the number of nodes, 
  * individual node degrees, maximum degree, and the flattened 2D connectivity array.
+ * of size ```N × maxdeg```. Note that this is optimized for moderate-sized networks
+ * with small average degrees. For extremely large or dense scale-free networks,
+ * memory usage may scale with max degree.
  *
  * @param filename   Path to the network data file.
  * @param N_out      Pointer to store the total number of nodes (N).
