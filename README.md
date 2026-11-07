@@ -11,12 +11,19 @@ Briefly, at every iteration, each agent simultaneously plays independent games w
 
 The payoffs that an agent recieves is derived from the payoff matrix:
 
-|           | Cooperate | Defect |
-|    ---    |    ---    |   ---  |
-| Cooperate |    R, R   |  S, T  |
-|  Defect   |    T, S   |  P, P  |
+| Ego \ Opponent | Cooperate | Defect |
+| :--- | :---: | :---: |
+| **Cooperate** | $(R, R)$ | $(S, T)$ |
+| **Defect** | $(T, S)$ | $(P, P)$ |
 
-where the values ```R=1```, ```P=0```, ```S=0``` are hardcoded, while ```T``` is treated as a free parameter. Note that ```T>1``` corresponds to the Prisoner's Dilemma game, while ```T<1``` corresponds to the Stag Hunt game.
+> **Note:** Payoffs are ordered as `(Ego payoff, Opponent payoff)`, where:
+>
+> * $R$: Reward for mutual cooperation ($R = 1$, hardcoded).
+> * $T$: Temptation to defect (free parameter).
+> * $S$: Sucker's payoff ($S = 0$, hardcoded).
+> * $P$: Punishment for mutual defection ($P = 0$, hardcoded).
+
+Note that ```T>1``` corresponds to the Prisoner's Dilemma game, while ```T<1``` corresponds to the Stag Hunt game.
 
 These codes use the xoshiro256++ random number generator (public domain / CC0) by David Blackman and Sebastiano Vigna (<https://prng.di.unimi.it>).
 _____________________________________________________________________________________________
