@@ -5,13 +5,13 @@ A set of codes for investigating the effect of noise on the collective dynamics 
 > Menon SN, Sasidevan V, & Sinha S (2018) Emergence of cooperation as a non-equilibrium transition in noisy spatial games. _Front. Phys._ **6**: 34.
 > <https://doi.org/10.3389/fphy.2018.00034>
 
-Briefly, at every iteration, each agent simultaneously plays independent games with each of their neighbours on the network, accumulates payoffs and updates their actions via a Fermi rule. Here each agent ```i``` (with net payoff ```π_i```) chooses, at random, a neighbour ```j``` (with net payoff ```π_j```) and copies the action of the neighbour with a probability given by the Fermi distribution function:
+Briefly, at every iteration, each agent simultaneously plays independent games with each of their neighbours on the network, accumulates payoffs and updates their actions via a Fermi rule. Here each agent $i$ (with net payoff $\pi_i$) chooses, at random, a neighbour $j$ (with net payoff $\pi_j$) and copies the action of the neighbour with a probability given by the Fermi distribution function:
 
-```Π_{i->j} = 1/(1+exp(-(π_j-π_i)/K))```
+$$\Pi_{i->j} = \frac{1}{1+exp(-(\pi_j-\pi_i)/K)}$$
 
 The payoffs that an agent recieves is derived from the payoff matrix:
 
-| Ego \ Opponent | Cooperate | Defect |
+| Ego / Opponent | Cooperate | Defect |
 | :--- | :---: | :---: |
 | **Cooperate** | $(R, R)$ | $(S, T)$ |
 | **Defect** | $(T, S)$ | $(P, P)$ |
@@ -23,7 +23,7 @@ The payoffs that an agent recieves is derived from the payoff matrix:
 > * $S$: Sucker's payoff ($S = 0$, hardcoded).
 > * $P$: Punishment for mutual defection ($P = 0$, hardcoded).
 
-Note that ```T>1``` corresponds to the Prisoner's Dilemma game, while ```T<1``` corresponds to the Stag Hunt game.
+Note that $T>1$ corresponds to the Prisoner's Dilemma game, while $T<1$ corresponds to the Stag Hunt game.
 
 These codes use the xoshiro256++ random number generator (public domain / CC0) by David Blackman and Sebastiano Vigna (<https://prng.di.unimi.it>).
 _____________________________________________________________________________________________
@@ -32,7 +32,7 @@ ________________________________________________________________________________
 
 (1) **Create a network adjacency list**
 
-The C script requires an index-based adjacency list in DAT format, where the elements in row ```i``` correspond to the indices of the network neighbours of node ```i```. This code supports networks with variable node degrees.
+The C script requires an index-based adjacency list in DAT format, where the elements in row $i$ correspond to the indices of the network neighbours of node $i$. This code supports networks with variable node degrees.
 
 In order to create the sorts of networks used in Menon et al (2018), use:
 
@@ -78,4 +78,4 @@ The repository contains the following files:
 
 * ```rng_xoshiro.c``` : contains wrapper for third party random number generator (xoshiro256++, see: <https://prng.di.unimi.it>)
 
-* ```create_WS_network.py``` : script for creating an index-based adjacency list for a Watts-Strogatz rewired network of specified size ```N``` and rewiring probability ```p```, starting with a regular square lattice, assuming a Moore neighbourhood (8 neighbours).
+* ```create_WS_network.py``` : script for creating an index-based adjacency list for a Watts-Strogatz rewired network of specified size $N$ and rewiring probability $p$, starting with a regular square lattice, assuming a Moore neighbourhood (8 neighbours).
