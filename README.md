@@ -7,7 +7,7 @@ A set of codes for investigating the effect of noise on the collective dynamics 
 
 Briefly, at every iteration, each agent simultaneously plays independent games with each of their neighbours on the network, accumulates payoffs and updates their actions via a Fermi rule. Here each agent $i$ (with net payoff $\pi_i$) chooses, at random, a neighbour $j$ (with net payoff $\pi_j$) and copies the action of the neighbour with a probability given by the Fermi distribution function:
 
-$$\Pi_{i\rightarrowj} = \frac{1}{1+\exp(-(\pi_j-\pi_i)/K)}$$
+$$\Pi_{i\rightarrow j} = \frac{1}{1+\exp(-(\pi_j-\pi_i)/K)}$$
 
 The payoffs that an agent recieves is derived from the payoff matrix:
 
@@ -30,28 +30,30 @@ ________________________________________________________________________________
 
 ## Simulation details
 
-### 1. Create a network adjacency list**
+### 1. Create a network adjacency list
 
 The C script requires an index-based adjacency list in DAT format, where the elements in row $i$ correspond to the indices of the network neighbours of node $i$. This code supports networks with variable node degrees.
 
 In order to create the sorts of networks used in Menon et al (2018), use:
 
 ```bash
-python create_WS_network.py <N> <p>
+python create_WS_network.py <L> <p>
 ```
 
-* `<N>`: System size.
+* `<L>`: Lattice side length (system size $N = L \times L$).
 * `<p>`: Rewiring probability via the Watts-Strogatz technique.
+
+> Note that this code starts with a regular square lattice with a Moore neighbourhood, and rewires each link with probability `<p>`. The final generated random network is of size $N = L \times L$.
 
 This creates a the following file containing the network adjacency list:
 `neighbour_list_N_<N>_p_<p>.dat`.
 
-### 2. Compile and run the script**
+### 2. Compile and run the script
 
 ```bash
 gcc -O3 -lm -o script network_game_fermi.c
 
-./script <network_file>.dat <T> <K> <tmax> <seed> [OPTIONAL: <rec_int>]
+./script <network_file>.dat <T> <K> <tmax> <seed> [<rec_int>]
 ```
 
 #### Input Arguments
