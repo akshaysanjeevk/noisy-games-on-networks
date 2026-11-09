@@ -5,11 +5,11 @@ A set of codes for investigating the effect of noise on the collective dynamics 
 > Menon SN, Sasidevan V, & Sinha S (2018) Emergence of cooperation as a non-equilibrium transition in noisy spatial games. _Front. Phys._ **6**: 34.
 > <https://doi.org/10.3389/fphy.2018.00034>
 
-Briefly, at every iteration, each agent simultaneously plays independent games with each of their neighbours on the network, accumulates payoffs and updates their actions via a Fermi rule. Here each agent $i$ (with net payoff $\pi_i$) chooses, at random, a neighbour $j$ (with net payoff $\pi_j$) and copies the action of the neighbour with a probability given by the Fermi distribution function:
+Briefly, at every iteration, each agent simultaneously plays independent two-player games with each of their neighbours on the network, accumulates payoffs and updates their actions via a Fermi rule. Here each agent $i$ (with net payoff $\pi_i$) chooses, at random, a neighbour $j$ (with net payoff $\pi_j$) and copies the action of the neighbour with a probability given by the Fermi distribution function:
 
 $$\Pi_{i\rightarrow j} = \frac{1}{1+\exp(-(\pi_j-\pi_i)/K)}$$
 
-The payoffs that an agent recieves is derived from the payoff matrix:
+where $K$ is the temperature/noise. The payoffs that an agent recieves from each game are specified by the payoff matrix:
 
 | Ego / Opponent | Cooperate | Defect |
 | :--- | :---: | :---: |
@@ -43,7 +43,7 @@ python create_WS_network.py <L> <p>
 * `<L>`: Lattice side length (system size $N = L \times L$).
 * `<p>`: Rewiring probability via the Watts-Strogatz technique.
 
-> Note that this code starts with a regular square lattice with a Moore neighbourhood, and rewires each link with probability `<p>`. The final generated random network is of size $N = L \times L$.
+> Note that this code starts with a regular square lattice of side length `<L>`, and a Moore neighbourhood. On randomly rewiring each link with probability `<p>`, we obtain a Watts-Strogarz network of size `<N>`.
 
 This creates a the following file containing the network adjacency list:
 `neighbour_list_N_<N>_p_<p>.dat`.
