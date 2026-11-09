@@ -2,7 +2,7 @@
  * @file network_game_fermi.c
  * @brief Simulating games on a network via Fermi-rule updates.
  * @author Shakti N. Menon
- * @date 06-11-2026
+ * @date 09-11-2026
  * @license Distributed under the MIT License (see LICENSE for details).
  */
 
@@ -15,6 +15,7 @@
 #include "network_loader.h"
 #include "rng_xoshiro.h"
 
+// create OS-specific function
 #ifdef _WIN32
 	#include <direct.h>
 	#define CREATE_DIR(path) _mkdir(path)

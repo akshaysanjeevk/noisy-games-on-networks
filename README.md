@@ -51,7 +51,7 @@ This creates a the following file containing the network adjacency list:
 ### 2. Compile and run the script
 
 ```bash
-gcc -O3 -lm -o script network_game_fermi.c
+gcc -O3 -o script network_game_fermi.c -lm
 
 ./script <network_file>.dat <T> <K> <tmax> <seed> [<rec_int>]
 ```
