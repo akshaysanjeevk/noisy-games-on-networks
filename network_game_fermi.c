@@ -11,10 +11,17 @@
 #include <string.h>
 #include <errno.h>
 #include <math.h>
-#include <sys/stat.h>
 #include "cli_utils.h"
 #include "network_loader.h"
 #include "rng_xoshiro.h"
+
+#ifdef _WIN32
+	#include <direct.h>
+	#define CREATE_DIR(path) _mkdir(path)
+#else
+	#include <sys/stat.h>
+	#define CREATE_DIR(path) mkdir(path, 0755)
+#endif
 
 /*=============================================================================*/
 int main (int argc, char *argv[])
@@ -47,7 +54,7 @@ int main (int argc, char *argv[])
 	snprintf(out_dir, sizeof(out_dir), "data_%s", stem);
 
 	// create output directory if it doesn't exist
-	if (mkdir(out_dir, 0755) != 0 && errno != EEXIST) {
+	if (CREATE_DIR(out_dir) != 0 && errno != EEXIST) {
 		fprintf(stderr, "Error: cannot create output folder\n%s\n",
 			strerror(errno));
 		free(deg); free(links);
